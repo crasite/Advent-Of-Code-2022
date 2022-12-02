@@ -43,7 +43,7 @@ fn calculate_top_three(input: &str) -> u64 {
         }
     }
     compare_top(&mut current_top, &mut current);
-    current_top.iter().fold(0, |acc, x| acc + x)
+    current_top.iter().sum()
 }
 
 fn compare_top(current_top: &mut Vec<u64>, current: &mut u64) {
