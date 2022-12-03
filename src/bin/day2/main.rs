@@ -22,21 +22,21 @@ async fn main() {
 fn scoring(elf: &str, me: &str) -> u32 {
     match elf {
         "A" => match me {
-            "X" => return 3 + 1,
-            "Y" => return 6 + 2,
-            "Z" => return 0 + 3,
+            "X" => 3 + 1,
+            "Y" => 6 + 2,
+            "Z" => 3,
             _ => unreachable!(),
         },
         "B" => match me {
-            "X" => return 0 + 1,
-            "Y" => return 3 + 2,
-            "Z" => return 6 + 3,
+            "X" => 1,
+            "Y" => 3 + 2,
+            "Z" => 6 + 3,
             _ => unreachable!(),
         },
         "C" => match me {
-            "X" => return 6 + 1,
-            "Y" => return 0 + 2,
-            "Z" => return 3 + 3,
+            "X" => 6 + 1,
+            "Y" => 2,
+            "Z" => 3 + 3,
             _ => unreachable!(),
         },
         _ => unreachable!(),
@@ -46,21 +46,21 @@ fn scoring(elf: &str, me: &str) -> u32 {
 fn scoring_2(elf: &str, me: &str) -> u32 {
     match elf {
         "A" => match me {
-            "X" => return 0 + 3,
-            "Y" => return 3 + 1,
-            "Z" => return 6 + 2,
+            "X" => 3,
+            "Y" => 3 + 1,
+            "Z" => 6 + 2,
             _ => unreachable!(),
         },
         "B" => match me {
-            "X" => return 0 + 1,
-            "Y" => return 3 + 2,
-            "Z" => return 6 + 3,
+            "X" => 1,
+            "Y" => 3 + 2,
+            "Z" => 6 + 3,
             _ => unreachable!(),
         },
         "C" => match me {
-            "X" => return 0 + 2,
-            "Y" => return 3 + 3,
-            "Z" => return 6 + 1,
+            "X" => 2,
+            "Y" => 3 + 3,
+            "Z" => 6 + 1,
             _ => unreachable!(),
         },
         _ => unreachable!(),

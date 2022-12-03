@@ -31,7 +31,7 @@ fn part_one(input: &str) {
     for line in input.lines() {
         let (left, right) = line.split_at(line.len() / 2);
         for c in left.chars() {
-            if let Some(_) = right.find(c) {
+            if right.find(c).is_some() {
                 total_prioritiies += char_to_value(&c.to_string());
                 break;
             }
