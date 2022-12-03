@@ -17,11 +17,9 @@ fn part_two(input: &str) {
         let set2 = line_to_map(line.next().unwrap());
         let set3 = line_to_map(line.next().unwrap());
         for c in set1 {
-            if set2.contains(&c) {
-                if set3.contains(&c) {
-                    total_priorities += char_to_value(&c.to_string());
-                    break;
-                }
+            if set2.contains(&c) && set3.contains(&c) {
+                total_priorities += char_to_value(&c.to_string());
+                break;
             }
         }
     }
