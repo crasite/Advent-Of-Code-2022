@@ -67,7 +67,7 @@ fn main() {
     >::new()));
     let p1 = Player::new(7);
     let p2 = Player::new(8);
-    let rs = calculate_reality(p1, p2, true, cache.clone());
+    let rs = calculate_reality(p1, p2, true, cache);
     dbg!(rs.0.max(rs.1));
 }
 
@@ -80,88 +80,18 @@ fn calculate_reality(p1: Player, p2: Player, is_p1: bool, cache: Cache) -> (usiz
         p2.current_location,
         is_p1,
     )) {
-        return v.clone();
+        return *v;
     }
     let mut p1win = 0;
     let mut p2win = 0;
     let p = if is_p1 { p1 } else { p2 };
-    branching_reality(
-        p.clone(),
-        p1,
-        p2,
-        is_p1,
-        &mut p1win,
-        &mut p2win,
-        &cache,
-        1,
-        3,
-    );
-    branching_reality(
-        p.clone(),
-        p1,
-        p2,
-        is_p1,
-        &mut p1win,
-        &mut p2win,
-        &cache,
-        3,
-        4,
-    );
-    branching_reality(
-        p.clone(),
-        p1,
-        p2,
-        is_p1,
-        &mut p1win,
-        &mut p2win,
-        &cache,
-        6,
-        5,
-    );
-    branching_reality(
-        p.clone(),
-        p1,
-        p2,
-        is_p1,
-        &mut p1win,
-        &mut p2win,
-        &cache,
-        7,
-        6,
-    );
-    branching_reality(
-        p.clone(),
-        p1,
-        p2,
-        is_p1,
-        &mut p1win,
-        &mut p2win,
-        &cache,
-        6,
-        7,
-    );
-    branching_reality(
-        p.clone(),
-        p1,
-        p2,
-        is_p1,
-        &mut p1win,
-        &mut p2win,
-        &cache,
-        3,
-        8,
-    );
-    branching_reality(
-        p.clone(),
-        p1,
-        p2,
-        is_p1,
-        &mut p1win,
-        &mut p2win,
-        &cache,
-        1,
-        9,
-    );
+    branching_reality(p, p1, p2, is_p1, (&mut p1win, &mut p2win), &cache, (1, 3));
+    branching_reality(p, p1, p2, is_p1, (&mut p1win, &mut p2win), &cache, (3, 4));
+    branching_reality(p, p1, p2, is_p1, (&mut p1win, &mut p2win), &cache, (6, 5));
+    branching_reality(p, p1, p2, is_p1, (&mut p1win, &mut p2win), &cache, (7, 6));
+    branching_reality(p, p1, p2, is_p1, (&mut p1win, &mut p2win), &cache, (6, 7));
+    branching_reality(p, p1, p2, is_p1, (&mut p1win, &mut p2win), &cache, (3, 8));
+    branching_reality(p, p1, p2, is_p1, (&mut p1win, &mut p2win), &cache, (1, 9));
     cache.write().insert(
         (
             p1.current_score,
@@ -180,32 +110,25 @@ fn branching_reality(
     p1: Player,
     p2: Player,
     is_p1: bool,
-    p1win: &mut usize,
-    p2win: &mut usize,
-    cache: &Arc<
-        parking_lot::lock_api::RwLock<
-            parking_lot::RawRwLock,
-            HashMap<(usize, usize, usize, usize, bool), (usize, usize)>,
-        >,
-    >,
-    multiplier: usize,
-    step: usize,
+    win: (&mut usize, &mut usize),
+    cache: &Cache,
+    multiplier_step: (usize, usize),
 ) {
-    current_player.move_forward(step);
+    current_player.move_forward(multiplier_step.1);
     if current_player.current_score >= 21 {
         if is_p1 {
-            *p1win += multiplier;
+            *win.0 += multiplier_step.0;
         } else {
-            *p2win += multiplier;
+            *win.1 += multiplier_step.0;
         }
     } else {
-        let win = if is_p1 {
+        let calculated_win = if is_p1 {
             calculate_reality(current_player, p2, false, cache.clone())
         } else {
             calculate_reality(p1, current_player, true, cache.clone())
         };
-        *p1win += win.0 * multiplier;
-        *p2win += win.1 * multiplier;
+        *win.0 += calculated_win.0 * multiplier_step.0;
+        *win.1 += calculated_win.1 * multiplier_step.0;
     }
 }
 
