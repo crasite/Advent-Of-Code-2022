@@ -1,4 +1,5 @@
 #[derive(Debug)]
+#[allow(dead_code)]
 struct Command {
     is_on: bool,
     x_bound: (isize, isize),
@@ -7,6 +8,7 @@ struct Command {
 }
 
 fn main() {
+    #[allow(unused_variables)]
     let commands = dbg!(parse(include_str!("input.txt")));
 }
 
