@@ -91,11 +91,11 @@ fn part_1(stack_list: &mut Vec<Stack>, command_list: &Vec<Command>) {
 
 fn part_2(stack_list: &mut Vec<Stack>, command_list: &Vec<Command>) {
     for command in command_list {
-        let mut crates = VecDeque::new();
+        let mut crates = Vec::new();
         for _ in 0..command.amount {
-            crates.push_front(stack_list[command.from].crates.pop_back().unwrap());
+            crates.push(stack_list[command.from].crates.pop_back().unwrap());
         }
-        for c in crates {
+        while let Some(c) = crates.pop() {
             stack_list[command.to].crates.push_back(c);
         }
         // draw(&stack_list);
