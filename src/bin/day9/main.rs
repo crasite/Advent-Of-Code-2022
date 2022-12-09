@@ -35,7 +35,7 @@ fn part_2(input: &str) {
             }
         }
     }
-    println!("Part 1: {}", visited.len());
+    println!("Part 2: {}", visited.len());
 }
 
 fn part_1(input: &str) {
