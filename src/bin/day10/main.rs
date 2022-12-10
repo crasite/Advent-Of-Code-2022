@@ -27,7 +27,7 @@ fn main() {
     };
     part_1(&starting_state, 220, 0);
     println!("Part 2:");
-    part_2(&run_commands_state(&starting_state), 0, String::new());
+    part_2(&run(&starting_state), 0, String::new());
 }
 
 fn part_2(starting_state: &State, mut sprite_pos: isize, mut current_line: String) {
@@ -46,7 +46,7 @@ fn part_2(starting_state: &State, mut sprite_pos: isize, mut current_line: Strin
         println!("{}", current_line);
         return;
     }
-    let tmpstate = run_commands_state(starting_state);
+    let tmpstate = run(starting_state);
     part_2(&tmpstate, sprite_pos + 1, current_line);
 }
 
@@ -59,7 +59,7 @@ fn part_1(starting_state: &State, count: usize, strength: isize) {
         println!("Part 1: {new_strength}");
         return;
     }
-    let tmpstate = run_commands_state(starting_state);
+    let tmpstate = run(starting_state);
     part_1(&tmpstate, count - 1, new_strength);
 }
 
@@ -74,46 +74,52 @@ fn parse(input: &str) -> Vec<Command> {
     commands
 }
 
-fn run_commands_state<'a>(state: &'a State) -> State<'a> {
+fn run<'a>(state: &'a State) -> State<'a> {
     if state.pending_cycle > 0 {
         let mut new_state = state.clone();
         new_state.current_cycle += 1;
         new_state.pending_cycle -= 1;
         new_state
     } else {
-        // Calculate Pending Command
-        let mut new_x_register = state.x_register;
-        match state.pending_command {
-            Command { op: "noop", .. } => {}
-            Command {
-                op: "addx",
-                val: Some(v),
-            } => {
-                new_x_register += v;
-            }
-            c => unreachable!("unknown command: {c:?}"),
-        }
         let mut new_state = state.clone();
         new_state.commands = state.commands.split_at(1).1;
         new_state.current_cycle += 1;
-        new_state.x_register = new_x_register;
-        // Calcuate new Command
+        new_state.x_register = calculate_pending_command(state);
         if state.commands.first().is_none() {
             return new_state;
         }
         let cmd = state.commands.first().unwrap();
-        match cmd.op {
-            "noop" => {
-                new_state.pending_command = cmd;
-                new_state.pending_cycle = 0;
-                new_state
-            }
-            "addx" => {
-                new_state.pending_command = cmd;
-                new_state.pending_cycle = 1;
-                new_state
-            }
-            e => unreachable!("unknown command: {}", e),
-        }
+        calculate_new_state(cmd, new_state)
     }
+}
+
+fn calculate_new_state<'a>(cmd: &'a Command, mut new_state: State<'a>) -> State<'a> {
+    match cmd.op {
+        "noop" => {
+            new_state.pending_command = cmd;
+            new_state.pending_cycle = 0;
+            new_state
+        }
+        "addx" => {
+            new_state.pending_command = cmd;
+            new_state.pending_cycle = 1;
+            new_state
+        }
+        e => unreachable!("unknown command: {}", e),
+    }
+}
+
+fn calculate_pending_command(state: &State) -> isize {
+    let mut new_x_register = state.x_register;
+    match state.pending_command {
+        Command { op: "noop", .. } => {}
+        Command {
+            op: "addx",
+            val: Some(v),
+        } => {
+            new_x_register += v;
+        }
+        c => unreachable!("unknown command: {c:?}"),
+    }
+    new_x_register
 }
