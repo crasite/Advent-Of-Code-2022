@@ -1,10 +1,12 @@
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Command<'a> {
     op: &'a str,
     val: Option<isize>,
 }
 
+#[derive(Debug, Clone)]
 struct State<'a> {
+    commands: &'a [Command<'a>],
     current_cycle: isize,
     x_register: isize,
     pending_cycle: usize,
@@ -13,17 +15,52 @@ struct State<'a> {
 
 fn main() {
     let commands = parse(include_str!("input.txt"));
-    run_commands(&commands, 20, 40);
-    run_commands_state(
-        &commands,
-        0,
-        1,
-        0,
-        &Command {
+    let starting_state = State {
+        commands: &commands,
+        current_cycle: 0,
+        x_register: 1,
+        pending_cycle: 0,
+        pending_command: &Command {
             op: "noop",
             val: None,
         },
-    );
+    };
+    part_1(&starting_state, 220, 0);
+    println!("Part 2:");
+    part_2(&run_commands_state(&starting_state), 0, String::new());
+}
+
+fn part_2(starting_state: &State, mut sprite_pos: isize, mut current_line: String) {
+    if sprite_pos == 40 {
+        println!("{}", current_line);
+        current_line.clear();
+        sprite_pos = 0;
+    }
+
+    if (sprite_pos - starting_state.x_register).abs() <= 1 {
+        current_line.push('#');
+    } else {
+        current_line.push('.');
+    }
+    if starting_state.commands.is_empty() {
+        println!("{}", current_line);
+        return;
+    }
+    let tmpstate = run_commands_state(starting_state);
+    part_2(&tmpstate, sprite_pos + 1, current_line);
+}
+
+fn part_1(starting_state: &State, count: usize, strength: isize) {
+    let mut new_strength = strength;
+    if [20, 60, 100, 140, 180, 220].contains(&starting_state.current_cycle) {
+        new_strength += starting_state.current_cycle * starting_state.x_register;
+    }
+    if count == 0 {
+        println!("Part 1: {new_strength}");
+        return;
+    }
+    let tmpstate = run_commands_state(starting_state);
+    part_1(&tmpstate, count - 1, new_strength);
 }
 
 fn parse(input: &str) -> Vec<Command> {
@@ -37,35 +74,16 @@ fn parse(input: &str) -> Vec<Command> {
     commands
 }
 
-fn run_commands_state<'a>(
-    commands: &[Command<'a>],
-    current_cycle: isize,
-    x_register: isize,
-    pending_cycle: usize,
-    pending_command: &Command<'a>,
-) -> State<'a> {
-    println!("Current Cycle: {current_cycle}, X Register: {x_register}, Pending Cycle: {pending_cycle}, Pending Command: {pending_command:?}" );
-    if pending_cycle > 0 {
-        match pending_command.op {
-            "noop" => run_commands_state(
-                commands,
-                current_cycle + 1,
-                x_register,
-                pending_cycle - 1,
-                pending_command,
-            ),
-            "addx" => run_commands_state(
-                commands,
-                current_cycle + 1,
-                x_register,
-                pending_cycle - 1,
-                pending_command,
-            ),
-            e => unreachable!("unknown command: {}", e),
-        }
+fn run_commands_state<'a>(state: &'a State) -> State<'a> {
+    if state.pending_cycle > 0 {
+        let mut new_state = state.clone();
+        new_state.current_cycle += 1;
+        new_state.pending_cycle -= 1;
+        new_state
     } else {
-        let mut new_x_register = x_register;
-        match pending_command {
+        // Calculate Pending Command
+        let mut new_x_register = state.x_register;
+        match state.pending_command {
             Command { op: "noop", .. } => {}
             Command {
                 op: "addx",
@@ -75,80 +93,27 @@ fn run_commands_state<'a>(
             }
             c => unreachable!("unknown command: {c:?}"),
         }
-        if commands.first().is_none() {
-            return;
+        let mut new_state = state.clone();
+        new_state.commands = state.commands.split_at(1).1;
+        new_state.current_cycle += 1;
+        new_state.x_register = new_x_register;
+        // Calcuate new Command
+        if state.commands.first().is_none() {
+            return new_state;
         }
-        let cmd = commands.first().unwrap();
+        let cmd = state.commands.first().unwrap();
         match cmd.op {
-            "noop" => run_commands_state(
-                commands.split_at(1).1,
-                current_cycle + 1,
-                new_x_register,
-                0,
-                cmd,
-            ),
-            "addx" => run_commands_state(
-                commands.split_at(1).1,
-                current_cycle + 1,
-                new_x_register,
-                1,
-                cmd,
-            ),
+            "noop" => {
+                new_state.pending_command = cmd;
+                new_state.pending_cycle = 0;
+                new_state
+            }
+            "addx" => {
+                new_state.pending_command = cmd;
+                new_state.pending_cycle = 1;
+                new_state
+            }
             e => unreachable!("unknown command: {}", e),
         }
     }
-}
-
-fn run_commands(
-    commands: &[Command],
-    cycle_stop_starting_point: isize,
-    cycle_stop_interval: isize,
-) {
-    let mut register_x = 1;
-    let mut cycle: isize = 0;
-    let mut strength: isize = 0;
-    for command in commands {
-        if cycle > 220 {
-            break;
-        }
-        match command.op {
-            "noop" => {
-                if cycle + 1 == cycle_stop_starting_point {
-                    strength += (cycle + 1) * register_x;
-                }
-                if cycle > cycle_stop_starting_point
-                    && (cycle + 1 - cycle_stop_starting_point) % cycle_stop_interval == 0
-                {
-                    strength += (cycle + 1) * register_x;
-                }
-                cycle += 1;
-            }
-            "addx" => {
-                if cycle + 1 == cycle_stop_starting_point || cycle + 2 == cycle_stop_starting_point
-                {
-                    let cycle = if (cycle + 2) % cycle_stop_starting_point == 0 {
-                        cycle + 2
-                    } else {
-                        cycle + 1
-                    };
-                    strength += cycle * register_x;
-                }
-                if cycle > cycle_stop_starting_point
-                    && (cycle + 2 - cycle_stop_starting_point) % cycle_stop_interval <= 1
-                {
-                    let cycle =
-                        if (cycle + 2 - cycle_stop_starting_point) % cycle_stop_interval == 0 {
-                            cycle + 2
-                        } else {
-                            cycle + 1
-                        };
-                    strength += cycle * register_x;
-                }
-                register_x += command.val.unwrap();
-                cycle += 2;
-            }
-            _ => unreachable!("Unknown Commands"),
-        }
-    }
-    println!("Part 1: {}", strength);
 }
