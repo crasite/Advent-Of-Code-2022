@@ -1,4 +1,8 @@
 use std::{collections::HashMap, fmt::Display};
+pub mod prelude {
+    pub use anyhow::{anyhow, bail, Result};
+    pub use tracing::{debug, error, info, trace, warn};
+}
 
 pub trait Grid {
     type Item: Display;
