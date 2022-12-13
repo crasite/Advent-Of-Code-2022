@@ -1,5 +1,5 @@
 use aoc::prelude::*;
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 struct Packet {
     data: String,
 }
@@ -62,10 +62,10 @@ impl Packet {
             } else {
                 let other_val = other_sub_packets.get(idx).unwrap().parse::<u32>().unwrap();
                 let self_val = sub_packet.parse::<u32>().unwrap();
-                if self_val < other_val {
-                    return Some(true);
-                } else if self_val > other_val {
-                    return Some(false);
+                match self_val.cmp(&other_val) {
+                    std::cmp::Ordering::Less => return Some(true),
+                    std::cmp::Ordering::Greater => return Some(false),
+                    _ => continue,
                 }
             }
         }
@@ -84,16 +84,77 @@ fn convert_to_packet(input: &str) -> Packet {
     } else {
         let mut data = input.to_string();
         data.push(']');
-        data.insert_str(0, "[");
+        data.insert(0, '[');
         Packet {
             data: data.to_string(),
         }
     }
 }
 
+impl Ord for Packet {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
+
+impl PartialOrd for Packet {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        if let Some(validity) = self.is_valid(other) {
+            if validity {
+                Some(std::cmp::Ordering::Less)
+            } else {
+                Some(std::cmp::Ordering::Greater)
+            }
+        } else {
+            None
+        }
+    }
+}
 #[tokio::main]
 async fn main() -> Result<()> {
-    let mut input_line = include_str!("input.txt").lines();
+    let input = include_str!("input.txt");
+    part1(input);
+    part2(input);
+    Ok(())
+}
+
+fn part2(input: &str) {
+    let mut input_line = input.lines();
+    let mut packet_list = vec![];
+    let dk1 = "[[2]]";
+    let dk2 = "[[6]]";
+    packet_list.push(Packet { data: dk1.into() });
+    packet_list.push(Packet { data: dk2.into() });
+    loop {
+        let p1 = Packet {
+            data: input_line.next().unwrap().to_string(),
+        };
+        let p2 = Packet {
+            data: input_line.next().unwrap().to_string(),
+        };
+        packet_list.push(p1);
+        packet_list.push(p2);
+        if input_line.next().is_none() {
+            break;
+        }
+    }
+    packet_list.sort();
+    let Some((idx1,_))=packet_list
+        .iter()
+        .enumerate()
+        .find(|(_idx, p)| p.data == dk1) else {
+        panic!("Not found");
+        };
+    let Some((idx2,_))=packet_list
+        .iter()
+        .enumerate()
+        .find(|(_idx, p)| p.data == dk2) else {
+        panic!("Not found");
+        };
+    println!("Part 2:{}", (idx1 + 1) * (idx2 + 1));
+}
+fn part1(input: &str) {
+    let mut input_line = input.lines();
     let mut i = 1;
     let mut rs = 0;
     loop {
@@ -113,8 +174,4 @@ async fn main() -> Result<()> {
         }
     }
     println!("Part 1: {}", rs);
-
-    Ok(())
 }
-
-fn compare(left: &str, right: &str) {}

@@ -41,19 +41,19 @@ impl PathFindable for MountainMap {
             None
         } else if target == 'E' {
             if starting as u32 + 1 >= 'z' as u32 {
-                Some((from.0 - to.0).abs() as usize + (from.1 - to.1).abs() as usize)
+                Some((from.0 - to.0).unsigned_abs() + (from.1 - to.1).unsigned_abs())
             } else {
                 None
             }
         } else if starting as u32 + 1 >= target as u32 || starting == 'S' {
-            Some((from.0 - to.0).abs() as usize + (from.1 - to.1).abs() as usize)
+            Some((from.0 - to.0).unsigned_abs() + (from.1 - to.1).unsigned_abs())
         } else {
             None
         }
     }
 
     fn h_value(&self, from: (&isize, &isize), to: (&isize, &isize)) -> Option<usize> {
-        Some((from.0 - to.0).abs() as usize + (from.1 - to.1).abs() as usize)
+        Some((from.0 - to.0).unsigned_abs() + (from.1 - to.1).unsigned_abs())
     }
 }
 
