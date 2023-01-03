@@ -18,7 +18,7 @@ impl Map {
     }
 
     fn get_total_light(&self) -> u32 {
-        self.data.iter().filter(|&&x| x).count() as u32
+        self.data.iter().filter(|x| **x).count() as u32
     }
 }
 
